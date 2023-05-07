@@ -7,10 +7,11 @@ import urfu_elar
 import urfu_elar_works
 
 
-def start_index_works(authors: list[str], output_path: Path,
+def start_index_works(authors: list[str], output_path: Path, common_file: str = 'updates.txt',
                       in_one_file: bool = False, only_store: bool = False):
     """
     Производит индексацию работ для переданных авторов.
+    :param common_file: Имя общего файла для записей о новых работах.
     :param authors: список ФИО авторов, для которых нужно проиндексировать работы.
     :param output_path: Папка, в которую нужно сохранять новые работы.
     :param in_one_file: Флаг, показывающий, что все новые работы должны записываться в один общий файл.
@@ -22,7 +23,10 @@ def start_index_works(authors: list[str], output_path: Path,
     if not index_path.exists():
         os.makedirs(index_path)
 
-    main_output_file = output_path / 'updates.txt'
+    if not common_file.endswith('.txt'):
+        common_file += '.txt'
+
+    main_output_file = output_path / common_file
     for author in authors:
         index_file = index_path / f'index_{author}.csv'
         output_file = output_path / f'{author}.txt' if not in_one_file else main_output_file
@@ -36,7 +40,8 @@ def _index_works_for_author(author: str, index_file: Path, output_file: Path, on
     try:
         all_works = urfu_elar.get_all_works_by_author(author)
     except urfu_elar.ElarException:
-        print(f'Индексирование для {author} прервано из-за ошибки. Оно будет проведено в следующий раз\n')
+        print(f'Индексирование для {author} прервано из-за ошибки. '
+              f'Оно будет проведено в следующий раз\n')
         return
 
     if not only_store and index_file.exists():
@@ -50,7 +55,7 @@ def _index_works_for_author(author: str, index_file: Path, output_file: Path, on
         for work in all_works:
             if work in old_works and all_works[work] <= old_works[work]:
                 continue
-            _load_work(author, output_file, work)
+            _save_work_data(author, output_file, work)
 
     with index_file.open('w', newline='\n', encoding='utf-8') as file:
         writer = csv.writer(file, delimiter=',')
@@ -60,7 +65,7 @@ def _index_works_for_author(author: str, index_file: Path, output_file: Path, on
     print(f'Завершено индексирование для {author}\n')
 
 
-def _load_work(author: str, output_file: Path, url: str):
+def _save_work_data(author: str, output_file: Path, url: str):
     print(f'Обнаружена новая работа у {author}: {url}')
     work = urfu_elar_works.work_from_url(url)
     result = ''

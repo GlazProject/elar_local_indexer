@@ -1,5 +1,0 @@
-feedparser
-lxml
-requests
-csv
-dataclasses

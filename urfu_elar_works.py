@@ -37,6 +37,11 @@ class Work:
 
 
 def work_from_string(document: str) -> Work:
+    """
+    Позволяет получить объект заполненной научной работы по данным из текста.
+    :param document: Текст в формате html, который содержит все необходимые данные в тегах meta.
+    :return: Объект типа Work - заполненный экземпляр данных о научной работе
+    """
     head = html.document_fromstring(document).head
     return Work(
         title=_try_get_one_attribute('DC.title', head),
@@ -59,7 +64,7 @@ def work_from_url(url: str) -> [Work, None]:
     """
     Позволяет получить объект научной работы по данным из url.
     :param url: URL страницы elar urfu с научной работой.
-    :return: заполненный экземпляр научной работы.
+    :return: Объект типа Work - заполненный экземпляр данных о научной работе
     """
     try:
         response = requests.get(url, timeout=10)

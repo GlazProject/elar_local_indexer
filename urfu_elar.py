@@ -3,6 +3,13 @@ import feedparser
 from time import mktime
 from datetime import datetime
 
+DEBUG = False
+
+
+def debug_print(message: str):
+    if DEBUG:
+        print(message)
+
 
 def get_all_works_by_author(author: str) -> dict[str, datetime]:
     """
@@ -19,13 +26,16 @@ def get_all_works_by_author(author: str) -> dict[str, datetime]:
     while start + rpp < total_results:
         start += rpp
         url = _get_url(author, start, rpp)
-        # print(f'REQUESTED: {url}')
+        debug_print(f'REQUESTED: {url}')
         start, rpp, total_results = _collect_works(author, url, items)
     return items
 
 
 def _get_url(author: str, start: int = 1, per_page: int = 20):
-    return f'https://elar.urfu.ru/open-search/?start={start}&rpp={per_page}&format=atom&query="{author}"'
+    return f'https://elar.urfu.ru/open-search/?' \
+           f'start={start}&' \
+           f'rpp={per_page}&' \
+           f'format=atom&query="{author}"'
 
 
 def _collect_works(author: str, url: str, links: dict[str, datetime]) -> (int, int, int):
@@ -40,7 +50,7 @@ def _collect_works(author: str, url: str, links: dict[str, datetime]) -> (int, i
     total_results = int(data.feed.opensearch_totalresults)
     rpp = int(data.feed.opensearch_itemsperpage)
     start = int(data.feed.opensearch_startindex)
-    # print(f'RESPONSE: start = {start}, rpp = {rpp}, total results = {total_results}')
+    debug_print(f'RESPONSE: start = {start}, rpp = {rpp}, total results = {total_results}')
 
     for entry in data.entries:
         if author in [a.name for a in entry.authors]:
